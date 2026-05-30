@@ -33,6 +33,17 @@ describe("Laniakea static site", () => {
     expect(screen.getByText(/realistic 1-billion-year/i)).toBeInTheDocument();
   });
 
+  it("renders colonization formulas as readable article text", async () => {
+    window.history.pushState({}, "", "/laniakea-colonization");
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Laniakea Colonization" });
+    expect(document.body.textContent).toMatch(/R\s+\u2248\s+vfront\s+t/i);
+    expect(document.body.textContent).not.toMatch(/\\approx|\\text|\\gamma|\[\s*R/);
+    expect(document.body.textContent).not.toMatch(/\*\*/);
+  });
+
   it("renders the compute explorer route", async () => {
     canvasCalls.fillText.length = 0;
     canvasCalls.arcs.length = 0;
@@ -41,8 +52,8 @@ describe("Laniakea static site", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "The Computation Cluster" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "galactic" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "cluster" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "One galaxy thinking" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Whole cluster reflection" })).toBeInTheDocument();
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(canvasCalls.arcs.every((call) => call[2] >= 0)).toBe(true);
     expect(canvasCalls.fillText.some((call) => call[0] === "Milky Way Core")).toBe(true);
@@ -54,10 +65,10 @@ describe("Laniakea static site", () => {
 
     render(<App />);
 
-    await screen.findByRole("button", { name: "cluster" });
-    await userEvent.click(screen.getByRole("button", { name: "cluster" }));
+    await screen.findByRole("button", { name: "Whole cluster reflection" });
+    await userEvent.click(screen.getByRole("button", { name: "Whole cluster reflection" }));
 
-    expect(screen.getByRole("button", { name: "cluster" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Whole cluster reflection" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getAllByText(/Whole-cluster thought/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/asynchronous/i).length).toBeGreaterThan(0);
   });
@@ -82,6 +93,30 @@ describe("Laniakea static site", () => {
     expect(canvasCalls.fillText.some((call) => call[0] === "Physics Search")).toBe(true);
   });
 
+  it("presents compute as a guided visual explorer instead of a settings wall", async () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Choose a cosmic project" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "What happens now" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Rebuild a lost Earth" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Run a trillion civilizations" })).toBeInTheDocument();
+    expect(screen.getByText(/Advanced assumptions/i)).toBeInTheDocument();
+    expect(screen.getByText(/Show the machine room/i)).toBeInTheDocument();
+  });
+
+  it("formats compute powers as scientific notation without fractional exponents", async () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "The Computation Cluster" });
+
+    expect(document.body.textContent).toMatch(/x 10\^\d+/);
+    expect(document.body.textContent).not.toMatch(/10\^\d+\.\d/);
+  });
+
   it("shows detailed activity presets for the compute explorer", async () => {
     window.history.pushState({}, "", "/laniakea-compute");
 
@@ -103,6 +138,18 @@ describe("Laniakea static site", () => {
 
     expect(await screen.findByRole("heading", { name: "Laniakea Compute" })).toBeInTheDocument();
     expect(screen.getByText(/Laniakea Computation Cluster/i)).toBeInTheDocument();
+  });
+
+  it("renders compute formulas as readable article text", async () => {
+    window.history.pushState({}, "", "/laniakea-compute-article");
+
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Laniakea Compute" });
+    expect(document.body.textContent).toMatch(/K = \(log10 P - 6\) \/ 10/i);
+    expect(document.body.textContent).toMatch(/Lsun\s+\u2248\s+3\.8\s+\u00d7\s+1026\s+W/i);
+    expect(document.body.textContent).not.toMatch(/\\frac|\\odot|\\times|\\text|\[\s*K/);
+    expect(document.body.textContent).not.toMatch(/\*\*/);
   });
 
   it("keeps original explorer scale controls and canvas labels working", async () => {

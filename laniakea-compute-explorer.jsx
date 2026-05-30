@@ -13,6 +13,7 @@ const POWER_CASES = {
 const THOUGHT_MODES = {
   local: {
     label: "local",
+    displayLabel: "Fast local minds",
     radiusMly: 0.02,
     diameterLy: 20000,
     powerShare: 0.00003,
@@ -21,6 +22,7 @@ const THOUGHT_MODES = {
   },
   galactic: {
     label: "galactic",
+    displayLabel: "One galaxy thinking",
     radiusMly: 0.09,
     diameterLy: 100000,
     powerShare: 0.16,
@@ -29,6 +31,7 @@ const THOUGHT_MODES = {
   },
   cluster: {
     label: "cluster",
+    displayLabel: "Whole cluster reflection",
     radiusMly: 100,
     diameterLy: 200000000,
     powerShare: 1,
@@ -36,6 +39,14 @@ const THOUGHT_MODES = {
     description: "The full Laniakea Computation Cluster is asynchronous: one complete reflection takes hundreds of millions of years.",
   },
 };
+
+const GUIDED_SCENARIOS = [
+  { label: "Rebuild a lost Earth", project: "ancestor", fidelity: "biological", ethics: "strict", mode: "galactic", intensity: 72 },
+  { label: "Test quantum gravity", project: "physics", fidelity: "nearPhysical", ethics: "cautious", mode: "cluster", intensity: 84 },
+  { label: "Run a trillion civilizations", project: "simFarm", fidelity: "civilization", ethics: "strict", mode: "galactic", intensity: 66 },
+  { label: "Preserve every biosphere", project: "archive", fidelity: "biological", ethics: "strict", mode: "cluster", intensity: 80 },
+  { label: "Send archives beyond isolation", project: "escape", fidelity: "civilization", ethics: "cautious", mode: "cluster", intensity: 64 },
+];
 
 const COMPUTE_NODES = [
   { name: "Milky Way Core", dist: 0.03, angle: 0.1, tier: "home", power: 1.0 },
@@ -250,7 +261,9 @@ const COMPUTE_PROJECTS = {
 };
 
 function expText(exp, suffix = "") {
-  return `10^${exp.toFixed(exp % 1 === 0 ? 0 : 1)}${suffix}`;
+  const exponent = Math.floor(exp);
+  const mantissa = Math.pow(10, exp - exponent);
+  return `${mantissa.toFixed(1)} x 10^${exponent}${suffix}`;
 }
 
 function compactYears(years) {
@@ -602,6 +615,14 @@ export default function LaniakeaComputeExplorer() {
     if (key === "starLifting") setEnergyStrategy("stellar");
     if (key === "blackHole") setEnergyStrategy("mass");
   };
+  const applyScenario = (scenario) => {
+    setProjectKey(scenario.project);
+    setFidelity(scenario.fidelity);
+    setEthics(scenario.ethics);
+    setMode(scenario.mode);
+    setProjectIntensity(scenario.intensity);
+    if (scenario.project === "escape") setEnergyStrategy("starlight");
+  };
 
   return (
     <div style={styles.root}>
@@ -614,88 +635,97 @@ export default function LaniakeaComputeExplorer() {
         </p>
       </header>
 
-      <div className="compute-grid" style={styles.grid}>
-        <section style={styles.panel}>
-          <h2 style={styles.h2}>Set the machine</h2>
+      <section style={styles.missionSection}>
+        <div className="section-head" style={styles.sectionHead}>
+          <h2 style={styles.h2}>Choose a cosmic project</h2>
+          <p style={styles.sectionText}>Pick what the civilization is trying to do. The map and outputs change around that activity.</p>
+        </div>
+        <div className="mission-grid" style={styles.missionGrid}>
+          {Object.keys(COMPUTE_PROJECTS).map((key) => (
+            <button
+              key={key}
+              className="mission-card"
+              onClick={() => setProject(key)}
+              style={{ ...styles.missionCard, ...(projectKey === key ? styles.missionCardActive : {}) }}
+              aria-pressed={projectKey === key}
+              aria-label={COMPUTE_PROJECTS[key].label}
+            >
+              <span style={{ ...styles.missionSwatch, background: COMPUTE_PROJECTS[key].color }} />
+              <span style={styles.missionTitle}>{COMPUTE_PROJECTS[key].label}</span>
+              <span style={styles.missionCopy}>{COMPUTE_PROJECTS[key].description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
-          <h3 style={styles.controlGroupTitle}>Project</h3>
-          <div style={styles.projectGrid}>
-            {Object.keys(COMPUTE_PROJECTS).map((key) => (
-              <button
-                key={key}
-                className="compute-btn"
-                onClick={() => setProject(key)}
-                style={{ ...styles.projectBtn, ...(projectKey === key ? styles.projectBtnActive : {}) }}
-                aria-pressed={projectKey === key}
-              >
-                {COMPUTE_PROJECTS[key].label}
-              </button>
-            ))}
+      <section className="stage-grid" style={styles.stageGrid}>
+        <div style={styles.mapPanel}>
+          <div style={styles.mapHead}>
+            <div>
+              <h2 style={styles.mapTitle}>Causal compute map</h2>
+              <p style={styles.mapSub}>Colored packets show the active {project.shortLabel.toLowerCase()} workload.</p>
+            </div>
+            <div style={styles.kardashev}>K {metrics.kardashev.toFixed(2)}</div>
           </div>
+          <canvas
+            ref={canvasRef}
+            style={styles.canvas}
+            aria-label="Laniakea computation cluster visualization"
+          />
+          <div style={styles.mapFoot}>{project.activity}</div>
+        </div>
 
-          <h3 style={styles.controlGroupTitle}>Scale</h3>
-          <div style={styles.segment}>
-            {Object.keys(POWER_CASES).map((key) => (
-              <button
-                key={key}
-                className="compute-btn"
-                onClick={() => setPowerCase(key)}
-                style={{ ...styles.smallBtn, ...(powerCase === key ? styles.smallBtnActive : {}) }}
-                aria-pressed={powerCase === key}
-              >
-                {POWER_CASES[key].label}
-              </button>
-            ))}
+        <aside style={styles.nowPanel}>
+          <h2 style={styles.h2}>What happens now</h2>
+          <div style={styles.nowEyebrow}>{project.label}</div>
+          <div style={styles.nowMetric}>{expText(activityExp, ` ${project.outputUnit}`)}</div>
+          <p style={styles.nowCopy}>{project.description}</p>
+          <div style={styles.nowList}>
+            <div><strong>Breaks first:</strong> {project.bottleneck}</div>
+            <div><strong>Thinking mode:</strong> {metrics.thought.verdict} - {metrics.thought.description}</div>
+            <div><strong>Cycle time:</strong> {compactYears(metrics.updateYears)}</div>
+            <div><strong>Risk posture:</strong> {metrics.moralRisk}</div>
+            <div><strong>Selected node:</strong> {metrics.selected.name}</div>
           </div>
+        </aside>
+      </section>
 
-          <h3 style={styles.controlGroupTitle}>Thought scale</h3>
-          <div style={styles.segment}>
-            {Object.keys(THOUGHT_MODES).map((key) => (
-              <button
-                key={key}
-                className="compute-btn"
-                onClick={() => setMode(key)}
-                style={{ ...styles.smallBtn, ...(mode === key ? styles.smallBtnActive : {}) }}
-                aria-pressed={mode === key}
-              >
-                {THOUGHT_MODES[key].label}
-              </button>
-            ))}
+      <section style={styles.controlsPanel}>
+        <div className="section-head" style={styles.sectionHead}>
+          <h2 style={styles.h2}>Mission controls</h2>
+          <p style={styles.sectionText}>Only the controls that change the story are up front.</p>
+        </div>
+        <div style={styles.scenarioRow}>
+          {GUIDED_SCENARIOS.map((scenario) => (
+            <button
+              key={scenario.label}
+              className="compute-btn"
+              onClick={() => applyScenario(scenario)}
+              style={styles.scenarioBtn}
+            >
+              {scenario.label}
+            </button>
+          ))}
+        </div>
+        <div className="key-controls" style={styles.keyControls}>
+          <div>
+            <h3 style={styles.controlGroupTitle}>Thought scale</h3>
+            <div style={styles.segment}>
+              {Object.keys(THOUGHT_MODES).map((key) => (
+                <button
+                  key={key}
+                  className="compute-btn"
+                  onClick={() => setMode(key)}
+                  style={{ ...styles.smallBtn, ...(mode === key ? styles.smallBtnActive : {}) }}
+                  aria-pressed={mode === key}
+                >
+                  {THOUGHT_MODES[key].displayLabel}
+                </button>
+              ))}
+            </div>
           </div>
-
-          <div style={styles.selectGrid}>
-            <SelectControl
-              label="Fidelity"
-              value={fidelity}
-              options={FIDELITY_LEVELS}
-              onChange={setFidelity}
-            />
-            <SelectControl
-              label="Ethics strictness"
-              value={ethics}
-              options={ETHICS_LEVELS}
-              onChange={setEthics}
-            />
-            <SelectControl
-              label="Subjective speed"
-              value={subjectiveSpeed}
-              options={SPEED_LEVELS}
-              onChange={setSubjectiveSpeed}
-            />
-            <SelectControl
-              label="Memory redundancy"
-              value={redundancy}
-              options={REDUNDANCY_LEVELS}
-              onChange={setRedundancy}
-            />
-            <SelectControl
-              label="Energy budget"
-              value={energyStrategy}
-              options={ENERGY_STRATEGIES}
-              onChange={setEnergyStrategy}
-            />
-          </div>
-
+          <SelectControl label="Fidelity" value={fidelity} options={FIDELITY_LEVELS} onChange={setFidelity} />
+          <SelectControl label="Ethics strictness" value={ethics} options={ETHICS_LEVELS} onChange={setEthics} />
           <Slider
             label={project.settingLabel}
             min={project.settingMin}
@@ -705,60 +735,8 @@ export default function LaniakeaComputeExplorer() {
             onChange={setProjectIntensity}
             valueText={`${projectIntensity} ${project.settingUnit}`}
           />
-
-          <Slider
-            label="Waste heat temperature"
-            min={3}
-            max={300}
-            step={1}
-            value={temperature}
-            onChange={setTemperature}
-            valueText={`${temperature} K`}
-          />
-          <Slider
-            label="Thermodynamic efficiency"
-            min={1}
-            max={30}
-            step={1}
-            value={efficiency}
-            onChange={setEfficiency}
-            valueText={`${efficiency}% Landauer`}
-          />
-
-          <label style={styles.toggle}>
-            <input
-              type="checkbox"
-              checked={showMemory}
-              onChange={(event) => setShowMemory(event.target.checked)}
-            />
-            show dormant archive nodes
-          </label>
-
-          <div style={styles.verdict}>
-            <div style={styles.bigLabel}>{project.shortLabel} - {metrics.thought.verdict}</div>
-            <div style={styles.bigNum}>{compactYears(metrics.updateYears)}</div>
-            <div style={styles.verdictText}>{project.description}</div>
-          </div>
-        </section>
-
-        <section style={styles.mapPanel}>
-          <div style={styles.mapHead}>
-            <div>
-              <h2 style={styles.mapTitle}>Causal compute map</h2>
-              <p style={styles.mapSub}>Click bright nodes. Colored packets show the active {project.shortLabel.toLowerCase()} workload.</p>
-            </div>
-            <div style={styles.kardashev}>K {metrics.kardashev.toFixed(2)}</div>
-          </div>
-          <canvas
-            ref={canvasRef}
-            style={styles.canvas}
-            aria-label="Laniakea computation cluster visualization"
-          />
-          <div style={styles.mapFoot}>
-            {project.activity}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <section className="compute-stats" style={styles.stats}>
         <div style={styles.stat}>
@@ -817,6 +795,40 @@ export default function LaniakeaComputeExplorer() {
                 : "Edge minds are part of the same civilization only through prediction, patience, and stable values."}
         </p>
       </section>
+
+      <section style={styles.advancedPanel}>
+        <h2 style={styles.h2}>Advanced assumptions</h2>
+        <details>
+          <summary style={styles.summary}>Show the machine room</summary>
+          <div className="advanced-grid" style={styles.advancedGrid}>
+            <div>
+              <h3 style={styles.controlGroupTitle}>Scale</h3>
+              <div style={styles.segment}>
+                {Object.keys(POWER_CASES).map((key) => (
+                  <button
+                    key={key}
+                    className="compute-btn"
+                    onClick={() => setPowerCase(key)}
+                    style={{ ...styles.smallBtn, ...(powerCase === key ? styles.smallBtnActive : {}) }}
+                    aria-pressed={powerCase === key}
+                  >
+                    {POWER_CASES[key].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <SelectControl label="Subjective speed" value={subjectiveSpeed} options={SPEED_LEVELS} onChange={setSubjectiveSpeed} />
+            <SelectControl label="Memory redundancy" value={redundancy} options={REDUNDANCY_LEVELS} onChange={setRedundancy} />
+            <SelectControl label="Energy budget" value={energyStrategy} options={ENERGY_STRATEGIES} onChange={setEnergyStrategy} />
+            <Slider label="Waste heat temperature" min={3} max={300} step={1} value={temperature} onChange={setTemperature} valueText={`${temperature} K`} />
+            <Slider label="Thermodynamic efficiency" min={1} max={30} step={1} value={efficiency} onChange={setEfficiency} valueText={`${efficiency}% Landauer`} />
+            <label style={styles.toggle}>
+              <input type="checkbox" checked={showMemory} onChange={(event) => setShowMemory(event.target.checked)} />
+              show dormant archive nodes
+            </label>
+          </div>
+        </details>
+      </section>
     </div>
   );
 }
@@ -848,6 +860,107 @@ const styles = {
     color: "#1a1813",
   },
   lede: { fontSize: 20, lineHeight: 1.55, color: "#4a4538", marginTop: 18 },
+  missionSection: {
+    marginBottom: 22,
+  },
+  sectionHead: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "end",
+    gap: 18,
+    marginBottom: 14,
+  },
+  sectionText: {
+    margin: 0,
+    color: "#5f5848",
+    fontSize: 16,
+    lineHeight: 1.35,
+    maxWidth: 520,
+  },
+  missionGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 12,
+  },
+  missionCard: {
+    display: "grid",
+    gridTemplateColumns: "auto 1fr",
+    gap: "6px 10px",
+    alignItems: "start",
+    textAlign: "left",
+    minHeight: 116,
+    background: "#fffdf8",
+    border: "1px solid #e8e0d0",
+    borderRadius: 12,
+    padding: 14,
+    color: "#23211c",
+    cursor: "pointer",
+    boxShadow: "0 8px 24px rgba(120,100,60,0.06)",
+  },
+  missionCardActive: {
+    border: "1px solid #166b46",
+    boxShadow: "0 10px 30px rgba(22,107,70,0.18)",
+    background: "#fafff8",
+  },
+  missionSwatch: { width: 10, height: 10, borderRadius: 10, marginTop: 5 },
+  missionTitle: { fontFamily: "'Space Mono', monospace", fontSize: 14, fontWeight: 700 },
+  missionCopy: { gridColumn: "1 / -1", fontSize: 15, color: "#5f5848", lineHeight: 1.32 },
+  stageGrid: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 360px)",
+    gap: 18,
+    alignItems: "stretch",
+    marginBottom: 22,
+  },
+  nowPanel: {
+    background: "#fffdf8",
+    border: "1px solid #e8e0d0",
+    borderRadius: 18,
+    padding: 22,
+    boxShadow: "0 8px 30px rgba(120,100,60,0.07)",
+  },
+  nowEyebrow: {
+    fontFamily: "'Space Mono', monospace",
+    color: "#166b46",
+    fontSize: 13,
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  nowMetric: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 26,
+    fontWeight: 800,
+    lineHeight: 1.08,
+    color: "#1a1813",
+    marginBottom: 12,
+  },
+  nowCopy: { margin: "0 0 16px", color: "#4a4538", fontSize: 17, lineHeight: 1.45 },
+  nowList: { display: "grid", gap: 10, fontSize: 15, lineHeight: 1.38, color: "#4a4538" },
+  controlsPanel: {
+    background: "#fffdf8",
+    border: "1px solid #e8e0d0",
+    borderRadius: 18,
+    padding: 22,
+    marginBottom: 22,
+  },
+  scenarioRow: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 18 },
+  scenarioBtn: {
+    fontFamily: "'Space Mono', monospace",
+    fontSize: 14,
+    padding: "9px 12px",
+    borderRadius: 10,
+    border: "1px solid #d8cfba",
+    background: "#f6f0e4",
+    color: "#4a4538",
+    cursor: "pointer",
+  },
+  keyControls: {
+    display: "grid",
+    gridTemplateColumns: "minmax(260px, 1.2fr) minmax(180px, .8fr) minmax(180px, .8fr) minmax(240px, 1fr)",
+    gap: 14,
+    alignItems: "end",
+  },
   grid: {
     display: "grid",
     gridTemplateColumns: "minmax(280px, 360px) 1fr",
@@ -1048,6 +1161,26 @@ const styles = {
     fontWeight: 700,
   },
   selectedCopy: { margin: 0, color: "#4a4538", lineHeight: 1.5, fontSize: 18 },
+  advancedPanel: {
+    background: "#fffdf8",
+    border: "1px solid #e8e0d0",
+    borderRadius: 18,
+    padding: 22,
+    marginTop: 22,
+  },
+  summary: {
+    fontFamily: "'Space Mono', monospace",
+    color: "#166b46",
+    cursor: "pointer",
+    fontSize: 15,
+    marginBottom: 14,
+  },
+  advancedGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 14,
+    alignItems: "end",
+  },
 };
 
 const computeCss = `
@@ -1070,14 +1203,29 @@ const computeCss = `
 @media (max-width: 900px) {
   .compute-grid,
   .compute-stats,
-  .activity-panel {
+  .activity-panel,
+  .mission-grid,
+  .stage-grid,
+  .key-controls,
+  .advanced-grid {
     grid-template-columns: 1fr !important;
   }
 }
 
+@media (max-width: 1050px) {
+  .compute-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
 @media (max-width: 640px) {
+  .section-head {
+    display: block !important;
+  }
+
   .compute-stats,
-  .compute-grid {
+  .compute-grid,
+  .mission-grid {
     gap: 12px !important;
   }
 }

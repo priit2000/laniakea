@@ -32,6 +32,56 @@ function normalizePath(pathname) {
   return pathname.replace(/\/$/, "") || "/";
 }
 
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  })[char]);
+}
+
+function latexToReadableHtml(value) {
+  return escapeHtml(value.trim())
+    .replace(/\s+/g, " ")
+    .replace(/\\frac\{\\log_\{10\} P - 6\}\{10\}/g, "(log<sub>10</sub> P - 6) / 10")
+    .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1) / ($2)")
+    .replace(/\\text\{([^{}]+)\}/g, "$1")
+    .replace(/\\mathrm\{([^{}]+)\}/g, "$1")
+    .replace(/\\log_\{10\}/g, "log<sub>10</sub>")
+    .replace(/\\gamma/g, "&gamma;")
+    .replace(/\\ln/g, "ln")
+    .replace(/\\approx/g, "&asymp;")
+    .replace(/\\times/g, "&times;")
+    .replace(/\\sim/g, "~")
+    .replace(/\\odot/g, "sun")
+    .replace(/\\,/g, " ")
+    .replace(/\\ /g, " ")
+    .replace(/\^\{([^{}]+)\}/g, "<sup>$1</sup>")
+    .replace(/\^([A-Za-z0-9+-]+)/g, "<sup>$1</sup>")
+    .replace(/_\{([^{}]+)\}/g, "<sub>$1</sub>")
+    .replace(/_([A-Za-z0-9]+)/g, "<sub>$1</sub>")
+    .replace(/\\([A-Za-z]+)/g, "$1")
+    .replace(/[{}]/g, "");
+}
+
+function normalizeArticleMarkdown(markdown) {
+  return markdown
+    .replace(/^\[\s*\r?\n([\s\S]*?)\r?\n\]\s*$/gm, (_, formula) => (
+      `\n\n<div class="formula">${latexToReadableHtml(formula)}</div>\n\n`
+    ))
+    .replace(/L_\\odot/g, "L<sub>sun</sub>")
+    .replace(/\\text\{([^{}]+)\}/g, "$1")
+    .replace(/\\gamma/g, "&gamma;")
+    .replace(/\\approx/g, "&asymp;")
+    .replace(/\\times/g, "&times;")
+    .replace(/\\sim/g, "~")
+    .replace(/10\^\{([^{}]+)\}/g, "10<sup>$1</sup>")
+    .replace(/c\^2/g, "c<sup>2</sup>")
+    .replace(/\\ /g, " ");
+}
+
 function SiteNav({ activePath }) {
   return (
     <nav className="site-nav" aria-label="Project articles">
@@ -52,7 +102,7 @@ function SiteNav({ activePath }) {
 }
 
 function ArticlePage({ title, markdown }) {
-  const html = marked.parse(`# ${title}\n\n${markdown}`);
+  const html = marked.parse(normalizeArticleMarkdown(`# ${title}\n\n${markdown}`));
 
   return (
     <main className="article-page">
@@ -205,6 +255,19 @@ body {
 .article a {
   color: #166b46;
   font-weight: 700;
+}
+
+.article .formula {
+  overflow-x: auto;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px solid #e8e0d0;
+  border-radius: 10px;
+  background: #f6f0e4;
+  font-family: 'Space Mono', monospace;
+  font-size: 17px;
+  line-height: 1.5;
+  color: #1a1813;
 }
 
 .article table {
