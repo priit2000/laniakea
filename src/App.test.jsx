@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import App from "./App.jsx";
+import { canvasCalls } from "./test/setup.js";
 
 describe("Laniakea static site", () => {
   it("renders the explorer on the home route", () => {
@@ -38,5 +40,29 @@ describe("Laniakea static site", () => {
 
     expect(await screen.findByRole("heading", { name: "Laniakea Compute" })).toBeInTheDocument();
     expect(screen.getByText(/Laniakea Computation Cluster/i)).toBeInTheDocument();
+  });
+
+  it("keeps original explorer scale controls and canvas labels working", async () => {
+    canvasCalls.fillText.length = 0;
+    canvasCalls.arcs.length = 0;
+    window.history.pushState({}, "", "/");
+
+    render(<App />);
+
+    await screen.findByRole("button", { name: "linear" });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(canvasCalls.fillText.some((call) => call[0] === "Milky Way")).toBe(true);
+    expect(canvasCalls.fillText.some((call) => call[0] === "Virgo Cluster")).toBe(true);
+
+    await userEvent.click(screen.getByRole("button", { name: "linear" }));
+
+    expect(screen.getByRole("button", { name: "linear" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Linear scale - true proportional distances/i)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "log" }));
+
+    expect(screen.getByRole("button", { name: "log" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Logarithmic scale - the whole reachable universe/i)).toBeInTheDocument();
   });
 });

@@ -1,8 +1,14 @@
 import "@testing-library/jest-dom/vitest";
+import { vi } from "vitest";
+
+export const canvasCalls = {
+  fillText: [],
+  arcs: [],
+};
 
 HTMLCanvasElement.prototype.getContext = function getContext() {
   return {
-    arc: () => {},
+    arc: (...args) => canvasCalls.arcs.push(args),
     beginPath: () => {},
     clearRect: () => {},
     createRadialGradient: () => ({
@@ -10,16 +16,38 @@ HTMLCanvasElement.prototype.getContext = function getContext() {
     }),
     fill: () => {},
     fillRect: () => {},
-    fillText: () => {},
     lineTo: () => {},
     moveTo: () => {},
     restore: () => {},
     save: () => {},
     setTransform: () => {},
     stroke: () => {},
-    measureText: () => ({ width: 0 }),
+    fillText: (...args) => canvasCalls.fillText.push(args),
+    measureText: () => ({ width: 80 }),
   };
 };
 
-window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 16);
+Object.defineProperties(HTMLCanvasElement.prototype, {
+  clientWidth: {
+    configurable: true,
+    value: 720,
+  },
+  clientHeight: {
+    configurable: true,
+    value: 440,
+  },
+});
+
+HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRect() {
+  return {
+    left: 0,
+    top: 0,
+    right: 720,
+    bottom: 440,
+    width: 720,
+    height: 440,
+  };
+};
+
+window.requestAnimationFrame = vi.fn((callback) => window.setTimeout(() => callback(Date.now()), 16));
 window.cancelAnimationFrame = (id) => window.clearTimeout(id);

@@ -129,12 +129,15 @@ export default function CosmicColonizationExplorer() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     let raf;
     let stars = [];
     let placePts = [];
     let cx = 0, cy = 0, maxR = 0;
     const maxMly = 16500; // out to the dark-energy event horizon
     let clickTargets = [];
+    let resizeObserver;
+    let resizeRetry;
 
     const scaleFns = {
       log: (mly) => (Math.log10(mly + 1) / Math.log10(maxMly + 1)) * maxR,
@@ -145,6 +148,11 @@ export default function CosmicColonizationExplorer() {
       const dpr = window.devicePixelRatio || 1;
       const cssW = canvas.clientWidth;
       const cssH = canvas.clientHeight;
+      if (!cssW || !cssH) {
+        window.clearTimeout(resizeRetry);
+        resizeRetry = window.setTimeout(seed, 50);
+        return;
+      }
       canvas.width = cssW * dpr;
       canvas.height = cssH * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -273,9 +281,9 @@ export default function CosmicColonizationExplorer() {
           ctx.stroke();
         }
         ctx.shadowBlur = 0;
-        if (isHover || isSel || ["cluster", "super", "home"].includes(p.tier)) {
+        if (isHover || isSel || p.tier !== "wall") {
           ctx.font = `${isHover || isSel ? "16px" : "14px"} ui-monospace, monospace`;
-          ctx.fillStyle = isHover || isSel ? "#ffffff" : "rgba(255,255,255,0.7)";
+          ctx.fillStyle = isHover || isSel ? "#ffffff" : reached ? "rgba(255,255,255,0.78)" : "rgba(255,210,210,0.7)";
           ctx.textAlign = x < cx ? "right" : "left";
           ctx.fillText(p.name, x + (x < cx ? -9 : 9), y + 3);
         }
@@ -297,6 +305,10 @@ export default function CosmicColonizationExplorer() {
 
     const onResize = () => seed();
     window.addEventListener("resize", onResize);
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(seed);
+      resizeObserver.observe(canvas);
+    }
 
     // interactive: click / hover the map
     const rectOf = () => canvas.getBoundingClientRect();
@@ -327,11 +339,13 @@ export default function CosmicColonizationExplorer() {
 
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(resizeRetry);
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("mousemove", onMove);
       canvas.removeEventListener("click", onClick);
     };
-  }, []); // seed once
+  }, []); // seed once, then redraw from live refs
 
   // keep latest goToPlace reachable from the canvas listeners
   const goToPlaceRef = useRef(goToPlace);
