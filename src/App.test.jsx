@@ -62,6 +62,40 @@ describe("Laniakea static site", () => {
     expect(screen.getAllByText(/asynchronous/i).length).toBeGreaterThan(0);
   });
 
+  it("lets compute explorer projects change use-case outputs and workload settings", async () => {
+    canvasCalls.fillText.length = 0;
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: "Ancestor Reconstruction" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Histories per cycle/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Fidelity")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ethics strictness")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Physics Search" }));
+
+    expect(screen.getByRole("button", { name: "Physics Search" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByText(/Candidate models/i)).toBeInTheDocument();
+    expect(screen.getByText(/Search breadth/i)).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(canvasCalls.fillText.some((call) => call[0] === "Physics Search")).toBe(true);
+  });
+
+  it("shows detailed activity presets for the compute explorer", async () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: "Civilization Sim Farm" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Galaxy-Scale Art" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Asynchronous Governance" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Deep-Time Archive" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Star-Lifting Program" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Escape Archive Launch" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Black-Hole Compute Reserve" })).toBeInTheDocument();
+  });
+
   it("keeps the compute article available from Markdown", async () => {
     window.history.pushState({}, "", "/laniakea-compute-article");
 
