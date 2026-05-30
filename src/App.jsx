@@ -1,6 +1,7 @@
 import React from "react";
 import { marked } from "marked";
 import CosmicColonizationExplorer from "../cosmic-colonization-explorer.jsx";
+import LaniakeaComputeExplorer from "../laniakea-compute-explorer.jsx";
 import colonizationMarkdown from "../laniakea-colonization.md?raw";
 import computeMarkdown from "../laniakea-compute.md?raw";
 
@@ -9,7 +10,7 @@ const ARTICLES = {
     title: "Laniakea Colonization",
     markdown: colonizationMarkdown,
   },
-  "/laniakea-compute": {
+  "/laniakea-compute-article": {
     title: "Laniakea Compute",
     markdown: computeMarkdown,
   },
@@ -17,8 +18,9 @@ const ARTICLES = {
 
 const navItems = [
   { href: "/", label: "Explorer" },
-  { href: "/laniakea-colonization", label: "Colonization" },
   { href: "/laniakea-compute", label: "Compute" },
+  { href: "/laniakea-colonization", label: "Colonization" },
+  { href: "/laniakea-compute-article", label: "Compute Text" },
 ];
 
 marked.setOptions({
@@ -65,13 +67,14 @@ function ArticlePage({ title, markdown }) {
 export default function App() {
   const path = normalizePath(window.location.pathname);
   const article = ARTICLES[path];
+  const isComputeExplorer = path === "/laniakea-compute";
 
   return (
     <>
       <style>{siteCss}</style>
       <div className="site-shell">
-        <SiteNav activePath={article ? path : "/"} />
-        {article ? <ArticlePage {...article} /> : <CosmicColonizationExplorer />}
+        <SiteNav activePath={article || isComputeExplorer ? path : "/"} />
+        {article ? <ArticlePage {...article} /> : isComputeExplorer ? <LaniakeaComputeExplorer /> : <CosmicColonizationExplorer />}
       </div>
     </>
   );

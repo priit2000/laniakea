@@ -33,8 +33,37 @@ describe("Laniakea static site", () => {
     expect(screen.getByText(/realistic 1-billion-year/i)).toBeInTheDocument();
   });
 
-  it("renders the compute article route from Markdown", async () => {
+  it("renders the compute explorer route", async () => {
+    canvasCalls.fillText.length = 0;
+    canvasCalls.arcs.length = 0;
     window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "The Computation Cluster" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "galactic" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "cluster" })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(canvasCalls.arcs.every((call) => call[2] >= 0)).toBe(true);
+    expect(canvasCalls.fillText.some((call) => call[0] === "Milky Way Core")).toBe(true);
+    expect(canvasCalls.fillText.some((call) => call[0] === "Virgo Compute Mesh")).toBe(true);
+  });
+
+  it("updates the compute explorer visualization controls", async () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    await screen.findByRole("button", { name: "cluster" });
+    await userEvent.click(screen.getByRole("button", { name: "cluster" }));
+
+    expect(screen.getByRole("button", { name: "cluster" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getAllByText(/Whole-cluster thought/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/asynchronous/i).length).toBeGreaterThan(0);
+  });
+
+  it("keeps the compute article available from Markdown", async () => {
+    window.history.pushState({}, "", "/laniakea-compute-article");
 
     render(<App />);
 
