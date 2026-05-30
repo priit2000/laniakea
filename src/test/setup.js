@@ -49,5 +49,5 @@ HTMLCanvasElement.prototype.getBoundingClientRect = function getBoundingClientRe
   };
 };
 
-window.requestAnimationFrame = vi.fn((callback) => window.setTimeout(() => callback(Date.now()), 16));
+window.requestAnimationFrame = vi.fn((callback) => window.setTimeout(() => callback(0), 16));
 window.cancelAnimationFrame = (id) => window.clearTimeout(id);

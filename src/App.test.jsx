@@ -52,6 +52,7 @@ describe("Laniakea static site", () => {
     await screen.findByRole("button", { name: "linear" });
     await new Promise((resolve) => setTimeout(resolve, 30));
 
+    expect(canvasCalls.arcs.every((call) => call[2] >= 0)).toBe(true);
     expect(canvasCalls.fillText.some((call) => call[0] === "Milky Way")).toBe(true);
     expect(canvasCalls.fillText.some((call) => call[0] === "Virgo Cluster")).toBe(true);
 

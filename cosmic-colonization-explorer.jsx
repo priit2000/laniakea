@@ -252,7 +252,8 @@ export default function CosmicColonizationExplorer() {
       ctx.shadowBlur = 0;
 
       for (let k = 0; k < 3; k++) {
-        const wr = Math.max(1, reachR) * (((dt * 0.25 + k / 3) % 1));
+        const ringPhase = ((dt * 0.25 + k / 3) % 1 + 1) % 1;
+        const wr = Math.max(1, reachR) * ringPhase;
         ctx.beginPath();
         ctx.arc(cx, cy, wr, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(124,255,178,${0.18 * (1 - wr / Math.max(1, reachR))})`;
@@ -281,9 +282,9 @@ export default function CosmicColonizationExplorer() {
           ctx.stroke();
         }
         ctx.shadowBlur = 0;
-        if (isHover || isSel || p.tier !== "wall") {
+        if (isHover || isSel || ["cluster", "super", "home"].includes(p.tier)) {
           ctx.font = `${isHover || isSel ? "16px" : "14px"} ui-monospace, monospace`;
-          ctx.fillStyle = isHover || isSel ? "#ffffff" : reached ? "rgba(255,255,255,0.78)" : "rgba(255,210,210,0.7)";
+          ctx.fillStyle = isHover || isSel ? "#ffffff" : "rgba(255,255,255,0.7)";
           ctx.textAlign = x < cx ? "right" : "left";
           ctx.fillText(p.name, x + (x < cx ? -9 : 9), y + 3);
         }
