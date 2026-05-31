@@ -3,29 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='4' fill='%23f59e0b'/%3E%3Ccircle cx='32' cy='32' r='10' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.65'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.4'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.15'/%3E%3C/svg%3E" />
+    <link rel="icon" type="image/svg+xml" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%23f59e0b' stroke-width='2.5' opacity='0.55'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23fef3c7'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23f59e0b'/%3E%3C/svg%3E" />
     <title>Laniakea Colonization Explorer</title>
   </head>
   <body>
     <div id="root"></div>
     <script>
-      // Animated layered-rings favicon — three shock-wave rings expand from the center,
-      // staggered, so the href is swapped on an interval (Chrome won't animate SVG natively).
+      // Animated supernova favicon — a shock-wave ring expands and fades from a pulsing
+      // bright core. Href is swapped on a 120ms tick (Chrome won't animate SVG natively).
       (function () {
         var link = document.getElementById("favicon");
         if (!link) return;
         var COLOR = "#f59e0b";
+        var TAU = Math.PI * 2;
         function frame(t) {
-          var cx = 32, cy = 32;
-          var parts = '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + COLOR + '"/>';
-          var total = (t * 0.4) / (Math.PI * 2);
-          for (var i = 0; i < 3; i++) {
-            var cycle = ((total + i / 3) % 1);
-            var r = (4 + cycle * 24).toFixed(1);
-            var op = ((1 - cycle) * 0.85).toFixed(2);
-            parts += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + COLOR + '" stroke-width="2" opacity="' + op + '"/>';
-          }
-          return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' + parts + "</svg>");
+          var cycle = ((t * 0.4) % TAU) / TAU;          // 0..1, shock-wave progress
+          var r = (4 + cycle * 24).toFixed(1);
+          var op = (1 - cycle).toFixed(2);
+          var coreR = (5 + Math.sin(t * 1.4) * 1.8).toFixed(2);
+          var svg =
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+              '<circle cx="32" cy="32" r="' + r + '" fill="none" stroke="' + COLOR + '" stroke-width="2.5" opacity="' + op + '"/>' +
+              '<circle cx="32" cy="32" r="' + coreR + '" fill="#fef3c7"/>' +
+              '<circle cx="32" cy="32" r="3" fill="' + COLOR + '"/>' +
+            '</svg>';
+          return "data:image/svg+xml," + encodeURIComponent(svg);
         }
         var t = 0;
         link.href = frame(t);
