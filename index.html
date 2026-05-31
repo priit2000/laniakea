@@ -3,10 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='4' fill='%23f59e0b'/%3E%3Ccircle cx='32' cy='32' r='10' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.65'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.4'/%3E%3Ccircle cx='32' cy='32' r='26' fill='none' stroke='%23f59e0b' stroke-width='2' opacity='0.15'/%3E%3C/svg%3E" />
     <title>Laniakea Colonization Explorer</title>
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Animated layered-rings favicon — three shock-wave rings expand from the center,
+      // staggered, so the href is swapped on an interval (Chrome won't animate SVG natively).
+      (function () {
+        var link = document.getElementById("favicon");
+        if (!link) return;
+        var COLOR = "#f59e0b";
+        function frame(t) {
+          var cx = 32, cy = 32;
+          var parts = '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + COLOR + '"/>';
+          var total = (t * 0.4) / (Math.PI * 2);
+          for (var i = 0; i < 3; i++) {
+            var cycle = ((total + i / 3) % 1);
+            var r = (4 + cycle * 24).toFixed(1);
+            var op = ((1 - cycle) * 0.85).toFixed(2);
+            parts += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + COLOR + '" stroke-width="2" opacity="' + op + '"/>';
+          }
+          return "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' + parts + "</svg>");
+        }
+        var t = 0;
+        link.href = frame(t);
+        setInterval(function () {
+          t += 0.5;
+          link.href = frame(t);
+        }, 120);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
