@@ -1,4 +1,16 @@
+<div class="viz-intro">
+  <div class="viz-intro-kicker">No-FTL · Real Physics · Deep Time</div>
+  <div class="viz-intro-title">The Colonization Horizon</div>
+  <div class="viz-intro-sub">How far could a self-replicating wave of settlements spread across the cosmic web? Pull the levers, click the stars, and watch the frontier breathe.</div>
+</div>
+
 **Realistic estimate: in 1 billion years, a serious no-FTL colonization wave gets about *100 million light-years* from the Milky Way.**
+
+<a class="viz-cta" href="/">
+  <span class="viz-cta-eyebrow">Interactive visualization</span>
+  <span class="viz-cta-title">Try the Colonization Horizon explorer</span>
+  <span class="viz-cta-sub">Pull the speed levers and watch the colonization bubble grow against the cosmic web. <span class="viz-cta-arrow">→</span></span>
+</a>
 
 That assumes a **0.1c effective expansion front**: not one ship coasting forever, but self-replicating probes/settlements that travel, build, launch the next wave, and keep spreading. That is already extremely aggressive but still physically sane. At that radius, you do **not** “colonize the universe”; you colonize a large chunk of the nearby cosmic web.
 

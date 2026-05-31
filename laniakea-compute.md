@@ -1,4 +1,16 @@
-Using your baseline: **a realistic 1-billion-year colonization wave occupies a cosmic-web region about 100 million light-years in radius**, containing roughly **10,000–100,000 galaxies**, **10¹⁴–10¹⁵ stars**, and about **10¹⁴ useful long-lived K/M/G stars**. That is the cluster I’ll build from. 
+<div class="viz-intro">
+  <div class="viz-intro-kicker">A galaxy-cluster-sized mind made of stars</div>
+  <div class="viz-intro-title">Build Your Cosmic Brain</div>
+  <div class="viz-intro-sub">We build a civilization that has spread across a chunk of the universe 100 million light-years wide, and turned its stars into computers. You decide how it's built. Make your choices and watch what it becomes.</div>
+</div>
+
+Using your baseline: **a realistic 1-billion-year colonization wave occupies a cosmic-web region about 100 million light-years in radius**, containing roughly **10,000–100,000 galaxies**, **10¹⁴–10¹⁵ stars**, and about **10¹⁴ useful long-lived K/M/G stars**. That is the cluster I’ll build from.
+
+<a class="viz-cta" href="/laniakea-compute">
+  <span class="viz-cta-eyebrow">Interactive visualization</span>
+  <span class="viz-cta-title">Build your own cosmic brain</span>
+  <span class="viz-cta-sub">Choose stars, temperature, matter, and run time — see what kind of mind a supercluster becomes. <span class="viz-cta-arrow">→</span></span>
+</a>
 
 ## The Colonization Cluster
 
