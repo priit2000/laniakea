@@ -11,7 +11,7 @@ describe("Laniakea static site", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: "The Colonization Horizon" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Explorer" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Colonization" })).toHaveAttribute("href", "/");
   });
 
   it("shows horizontal article links in the top menu", () => {
@@ -20,9 +20,10 @@ describe("Laniakea static site", () => {
     render(<App />);
 
     expect(screen.getByRole("navigation", { name: "Project articles" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Colonization" })).toHaveAttribute("href", "/laniakea-colonization");
-    expect(screen.getByRole("link", { name: "Compute Text" })).toHaveAttribute("href", "/laniakea-compute");
-    expect(screen.queryByRole("link", { name: "Compute" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Colonization" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Colonization Text" })).toHaveAttribute("href", "/laniakea-colonization");
+    expect(screen.getByRole("link", { name: "Compute" })).toHaveAttribute("href", "/laniakea-compute");
+    expect(screen.getByRole("link", { name: "Compute Text" })).toHaveAttribute("href", "/laniakea-compute-text");
   });
 
   it("renders the colonization article route from Markdown", async () => {
@@ -45,8 +46,49 @@ describe("Laniakea static site", () => {
     expect(document.body.textContent).not.toMatch(/\*\*/);
   });
 
-  it("keeps the compute text available from Markdown at the compute route", async () => {
+  it("renders the cosmic brain builder at the compute route", async () => {
     window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Build Your Cosmic Brain" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Number of stars used" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Operating temperature" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Amount of matter used for memory" })).toBeInTheDocument();
+    expect(screen.getByRole("radiogroup", { name: "Energy source" })).toBeInTheDocument();
+    expect(screen.getByLabelText("How long the civilization runs, in years")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Laniakea Compute" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "The Computation Cluster" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ancestor Reconstruction" })).not.toBeInTheDocument();
+  });
+
+  it("shows the site nav header above the cosmic brain builder", () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    expect(screen.getByRole("navigation", { name: "Project articles" })).toBeInTheDocument();
+    const activeLink = screen.getByRole("link", { name: "Compute" });
+    expect(activeLink).toHaveAttribute("href", "/laniakea-compute");
+    expect(activeLink).toHaveClass("site-link", "active");
+  });
+
+  it("updates aria-checked when cosmic brain choices change", async () => {
+    window.history.pushState({}, "", "/laniakea-compute");
+
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("radio", { name: "1 quadrillion" }));
+    await userEvent.click(screen.getByRole("radio", { name: "3 K" }));
+    await userEvent.click(screen.getByRole("radio", { name: "Burn the mass reserve" }));
+
+    expect(screen.getByRole("radio", { name: "1 quadrillion" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "3 K" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByRole("radio", { name: "Burn the mass reserve" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("keeps the compute text available from Markdown at the compute-text route", async () => {
+    window.history.pushState({}, "", "/laniakea-compute-text");
 
     render(<App />);
 
@@ -57,7 +99,7 @@ describe("Laniakea static site", () => {
   });
 
   it("renders compute formulas as readable article text", async () => {
-    window.history.pushState({}, "", "/laniakea-compute");
+    window.history.pushState({}, "", "/laniakea-compute-text");
 
     render(<App />);
 
@@ -66,6 +108,14 @@ describe("Laniakea static site", () => {
     expect(document.body.textContent).toMatch(/Lsun\s+\u2248\s+3\.8\s+\u00d7\s+1026\s+W/i);
     expect(document.body.textContent).not.toMatch(/\\frac|\\odot|\\times|\\text|\[\s*K/);
     expect(document.body.textContent).not.toMatch(/\*\*/);
+  });
+
+  it("keeps the compute-article alias serving the markdown", async () => {
+    window.history.pushState({}, "", "/laniakea-compute-article");
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Laniakea Compute" })).toBeInTheDocument();
   });
 
   it("keeps original explorer scale controls and canvas labels working", async () => {
