@@ -9,7 +9,9 @@ describe("Laniakea static site", () => {
   it("loads the official GA4 tracking snippet in the document shell", () => {
     const html = readFileSync("index.html", "utf8");
 
+    expect(html).toContain("<!-- Google tag (gtag.js) -->");
     expect(html).toContain("https://www.googletagmanager.com/gtag/js?id=G-RL73QNPZPK");
+    expect(html).toContain("window.gtag = gtag");
     expect(html).toContain("gtag('config', 'G-RL73QNPZPK')");
   });
 
