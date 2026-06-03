@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { marked } from "marked";
 import CosmicColonizationExplorer from "../cosmic-colonization-explorer.jsx";
 import CosmicBrainBuilder from "./CosmicBrainBuilder.jsx";
@@ -31,6 +31,8 @@ marked.setOptions({
   gfm: true,
   breaks: false,
 });
+
+const GA_MEASUREMENT_ID = "G-RL73QNPZPK";
 
 function normalizePath(pathname) {
   return pathname.replace(/\/$/, "") || "/";
@@ -118,6 +120,32 @@ function ArticlePage({ title, markdown }) {
   );
 }
 
+function GoogleAnalytics() {
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (document.getElementById("ga4-script")) return;
+
+    const gtagScript = document.createElement("script");
+    gtagScript.id = "ga4-script";
+    gtagScript.async = true;
+    gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+
+    const initScript = document.createElement("script");
+    initScript.id = "ga4-init";
+    initScript.innerHTML = `
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_MEASUREMENT_ID}');
+`;
+
+    document.head.appendChild(gtagScript);
+    document.head.appendChild(initScript);
+  }, []);
+
+  return null;
+}
+
 export default function App() {
   const path = normalizePath(window.location.pathname);
   const article = ARTICLES[path];
@@ -125,6 +153,7 @@ export default function App() {
 
   return (
     <>
+      <GoogleAnalytics />
       <style>{siteCss}</style>
       <div className="site-shell">
         <SiteNav activePath={article || isComputeBuilder ? path : "/"} />

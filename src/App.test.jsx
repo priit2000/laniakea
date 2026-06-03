@@ -1,10 +1,24 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import App from "./App.jsx";
 import { canvasCalls } from "./test/setup.js";
 
 describe("Laniakea static site", () => {
+  it("loads GA4 tracking on every page shell", async () => {
+    window.history.pushState({}, "", "/laniakea-colonization");
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.getElementById("ga4-script")).toHaveAttribute(
+        "src",
+        "https://www.googletagmanager.com/gtag/js?id=G-RL73QNPZPK",
+      );
+      expect(document.getElementById("ga4-init").textContent).toContain("G-RL73QNPZPK");
+    });
+  });
+
   it("renders the explorer on the home route", () => {
     window.history.pushState({}, "", "/");
 
